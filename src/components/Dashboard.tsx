@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import GameCard from './GameCard';
 import GameModal from './GameModal';
+import { getGameStats } from '../utils/gameStats';
 import '../styles/dashboard.css';
 
 interface GameInfo {
@@ -36,14 +37,62 @@ const games: GameInfo[] = [
 export default function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedGame, setSelectedGame] = useState<GameInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [gameStats, setGameStats] = useState(getGameStats());
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  // Refresh game stats when component mounts or when returning from a game
+  useEffect(() => {
+    const refreshStats = () => {
+      setGameStats(getGameStats());
+    };
+    
+    // Refresh on mount
+    refreshStats();
+    
+    // Refresh when window gains focus (returning from game)
+    window.addEventListener('focus', refreshStats);
+    
+    // Also refresh when component becomes visible (handles navigation back)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshStats();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('focus', refreshStats);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Refresh stats when location changes (navigating back from a game)
+  useEffect(() => {
+    if (location.pathname === '/dashboard') {
+      setGameStats(getGameStats());
+    }
+  }, [location.pathname]);
+
+  // Listen for game win events
+  useEffect(() => {
+    const handleGameWin = () => {
+      setGameStats(getGameStats());
+    };
+    
+    window.addEventListener('gameWinUpdated', handleGameWin);
+    
+    return () => {
+      window.removeEventListener('gameWinUpdated', handleGameWin);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -58,7 +107,22 @@ export default function Dashboard() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedGame(null);
+    // Refresh stats when modal closes
+    setGameStats(getGameStats());
   };
+
+  // Function to manually refresh stats (can be called from anywhere)
+  const refreshStats = () => {
+    setGameStats(getGameStats());
+  };
+
+  // Expose refresh function to window for debugging/testing
+  useEffect(() => {
+    (window as any).refreshGameStats = refreshStats;
+    return () => {
+      delete (window as any).refreshGameStats;
+    };
+  }, []);
 
   if (!isAuthenticated || !user) {
     return null;
@@ -82,6 +146,7 @@ export default function Dashboard() {
             title={game.title}
             description={game.description}
             gameName={game.gameName}
+            winCount={gameStats[game.gameName as keyof typeof gameStats] || 0}
             onClick={() => handleGameClick(game)}
           />
         ))}

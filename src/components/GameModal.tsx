@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/dashboard.css';
 
 interface GameModalProps {
@@ -10,6 +11,8 @@ interface GameModalProps {
 }
 
 export default function GameModal({ isOpen, onClose, title, description, gameName }: GameModalProps) {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -31,11 +34,9 @@ export default function GameModal({ isOpen, onClose, title, description, gameNam
   if (!isOpen) return null;
 
   const handleStartGame = () => {
-    // This will navigate to the game when implemented
-    // For now, we can just close the modal or show a message
     onClose();
-    // TODO: Navigate to actual game when implemented
-    // navigate(`/games/${gameName}`);
+    // Navigate to the game
+    navigate(`/games/${gameName}`);
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {

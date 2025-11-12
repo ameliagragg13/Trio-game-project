@@ -3,7 +3,9 @@ import Welcome from './components/Welcome';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Dashboard from './components/Dashboard';
-import GamePlaceholder from './components/GamePlaceholder';
+import MemoryMatching from './components/MemoryMatching';
+import TicTacToe from './components/TicTacToe';
+import Sudoku from './components/Sudoku';
 
 function App() {
   return (
@@ -13,9 +15,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/games/memory" element={<GamePlaceholder gameName="memory" displayName="Memory Matching" />} />
-        <Route path="/games/tictactoe" element={<GamePlaceholder gameName="tictactoe" displayName="Tic Tac Toe" />} />
-        <Route path="/games/sudoku" element={<GamePlaceholder gameName="sudoku" displayName="Sudoku" />} />
+        <Route path="/games/memory" element={<MemoryMatching />} />
+        <Route path="/games/tictactoe" element={<TicTacToe />} />
+        <Route path="/games/sudoku" element={<Sudoku />} />
       </Routes>
     </BrowserRouter>
   );
