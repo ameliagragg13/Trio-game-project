@@ -1,4 +1,6 @@
-const GAME_STATS_KEY = 'gameStats';
+import { getCurrentUser } from './auth';
+
+const GAME_STATS_KEY_PREFIX = 'gameStats_';
 
 export interface GameStats {
   memory: number;
@@ -6,9 +8,25 @@ export interface GameStats {
   sudoku: number;
 }
 
+/**
+ * Gets the user-specific game stats key
+ */
+function getGameStatsKey(): string | null {
+  const user = getCurrentUser();
+  if (!user) return null;
+  return `${GAME_STATS_KEY_PREFIX}${user.username}`;
+}
+
 export function getGameStats(): GameStats {
-  const statsJson = localStorage.getItem(GAME_STATS_KEY);
+  const statsKey = getGameStatsKey();
+  if (!statsKey) {
+    // No user logged in, return default stats
+    return { memory: 0, tictactoe: 0, sudoku: 0 };
+  }
+  
+  const statsJson = localStorage.getItem(statsKey);
   if (!statsJson) {
+    // User exists but no stats yet, return default
     return { memory: 0, tictactoe: 0, sudoku: 0 };
   }
   try {
@@ -19,12 +37,24 @@ export function getGameStats(): GameStats {
 }
 
 export function incrementGameWin(gameName: 'memory' | 'tictactoe' | 'sudoku'): void {
+  const statsKey = getGameStatsKey();
+  if (!statsKey) {
+    // No user logged in, can't save stats
+    console.warn('Cannot increment game win: no user logged in');
+    return;
+  }
+  
   const stats = getGameStats();
   stats[gameName] = (stats[gameName] || 0) + 1;
-  localStorage.setItem(GAME_STATS_KEY, JSON.stringify(stats));
+  localStorage.setItem(statsKey, JSON.stringify(stats));
 }
 
 export function resetGameStats(): void {
-  localStorage.removeItem(GAME_STATS_KEY);
+  const statsKey = getGameStatsKey();
+  if (!statsKey) {
+    // No user logged in, nothing to reset
+    return;
+  }
+  localStorage.removeItem(statsKey);
 }
 

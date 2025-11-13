@@ -50,6 +50,17 @@
   z-index: 1;
 }
 
+.memory-game-content-inner {
+  transition: filter 0.3s ease;
+}
+
+.memory-game-content-inner.blurred {
+  filter: blur(2px);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
 .memory-game-header {
   text-align: center;
   margin-bottom: 30px;
@@ -95,12 +106,25 @@
 
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
   margin-bottom: 30px;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.memory-grid-easy {
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 400px;
+}
+
+.memory-grid-medium {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.memory-grid-hard {
+  grid-template-columns: repeat(8, 1fr);
+  max-width: 800px;
 }
 
 .memory-card {
@@ -216,25 +240,78 @@
   transform: translateY(-2px);
 }
 
-.memory-win-screen {
+/* Modal Styles for Win Screen */
+.memory-win-modal {
   text-align: center;
   padding: 40px 20px;
+  max-width: 450px;
+}
+
+.memory-game-container .modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.memory-game-container .modal-content {
+  background: rgba(255, 240, 250, 0.98);
+  border: 3px solid rgba(255, 182, 193, 0.6);
+  border-radius: 30px;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(255, 182, 193, 0.3);
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.3s ease;
+}
+
+.memory-win-modal {
+  background: rgba(255, 240, 250, 0.98);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .win-title {
   font-family: 'Comfortaa', cursive;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: 700;
   color: #b883c7;
   text-shadow: 0 1px 2px rgba(184, 131, 199, 0.2);
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   letter-spacing: 1px;
 }
 
 .win-message {
   font-family: 'Comfortaa', cursive;
   font-size: 18px;
-  font-weight: 300;
+  font-weight: 400;
   color: #a78bb5;
   margin-bottom: 25px;
 }
@@ -243,7 +320,7 @@
   font-family: 'Comfortaa', cursive;
   font-size: 16px;
   font-weight: 400;
-  color: #7a5a8a;
+  color: #a78bb5;
   margin-bottom: 30px;
   display: flex;
   flex-direction: column;
@@ -269,42 +346,76 @@
   transition: all 0.3s ease;
 }
 
-.win-buttons .pixel-button-primary {
-  border-color: rgba(184, 131, 199, 0.5);
-  background: rgba(232, 200, 240, 0.6);
-  color: #8b6a9b;
+.win-buttons .win-primary-button {
+  background: #b883c7;
+  border: none;
+  color: #FFFFFF;
+  font-weight: 600;
   box-shadow: 
-    0 3px 10px rgba(184, 131, 199, 0.2),
-    0 0 0 1px rgba(184, 131, 199, 0.1);
+    0 4px 15px rgba(255, 182, 193, 0.4),
+    0 0 0 1px rgba(255, 182, 193, 0.2);
+  padding: 12px 28px;
 }
 
-.win-buttons .pixel-button-primary:hover {
-  background: rgba(232, 200, 240, 0.8);
-  border-color: rgba(184, 131, 199, 0.7);
-  color: #7a5a8a;
+.win-buttons .win-primary-button:hover {
+  background: #a78bb5;
   box-shadow: 
-    0 5px 15px rgba(184, 131, 199, 0.3),
-    0 0 0 1px rgba(184, 131, 199, 0.2);
+    0 6px 20px rgba(255, 182, 193, 0.5),
+    0 0 0 1px rgba(255, 182, 193, 0.3);
   transform: translateY(-2px);
 }
 
-.win-buttons .pixel-button-secondary {
-  border-color: rgba(167, 139, 181, 0.5);
+.win-buttons .win-secondary-button {
+  border: none;
+  background: transparent;
+  color: #a78bb5;
+  font-weight: 400;
+  box-shadow: none;
+}
+
+.win-buttons .win-secondary-button:hover {
+  background: transparent;
+  color: #b883c7;
+  box-shadow: none;
+  transform: none;
+}
+
+.difficulty-selection {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.difficulty-button {
+  font-family: 'Comfortaa', cursive;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 10px 24px;
+  border-radius: 20px;
+  border: 2px solid rgba(184, 131, 199, 0.5);
   background: rgba(240, 220, 245, 0.6);
   color: #9b7aab;
-  box-shadow: 
-    0 3px 10px rgba(167, 139, 181, 0.2),
-    0 0 0 1px rgba(167, 139, 181, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: none;
+  letter-spacing: 0.5px;
 }
 
-.win-buttons .pixel-button-secondary:hover {
+.difficulty-button:hover {
   background: rgba(240, 220, 245, 0.85);
-  border-color: rgba(167, 139, 181, 0.7);
+  border-color: rgba(184, 131, 199, 0.7);
   color: #8a6a9a;
-  box-shadow: 
-    0 5px 15px rgba(167, 139, 181, 0.3),
-    0 0 0 1px rgba(167, 139, 181, 0.2);
   transform: translateY(-2px);
+}
+
+.difficulty-button.active {
+  background: rgba(232, 200, 240, 0.8);
+  border-color: rgba(184, 131, 199, 0.8);
+  color: #7a5a8a;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(184, 131, 199, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -316,9 +427,20 @@
     font-size: 28px;
   }
 
-  .memory-grid {
+  .memory-grid-easy,
+  .memory-grid-medium {
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
+  }
+  
+  .memory-grid-easy {
+    max-width: 350px;
+  }
+  
+  .memory-grid-hard {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    max-width: 600px;
   }
 
   .memory-icon {
@@ -340,8 +462,15 @@
 }
 
 @media (max-width: 480px) {
-  .memory-grid {
+  .memory-grid-easy,
+  .memory-grid-medium {
     gap: 8px;
+  }
+  
+  .memory-grid-hard {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-width: 100%;
   }
 
   .memory-game-title {

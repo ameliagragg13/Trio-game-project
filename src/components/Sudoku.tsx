@@ -600,12 +600,18 @@ export default function Sudoku() {
     <div className="sudoku-container">
       <div className="sudoku-content">
         <div className="sudoku-header">
-          <div className="sudoku-badge">Sudoku</div>
-          <div className="sudoku-header-right">
-            <div className={`sudoku-mistakes mistakes-${getMistakeCounterColor()}`}>
-              Mistakes: {mistakes}/3
+          <h1 className="sudoku-title">Sudoku</h1>
+          <div className="sudoku-stats">
+            <div className="stat-item">
+              <span className="stat-label">Mistakes:</span>
+              <span className={`stat-value mistakes-${getMistakeCounterColor()}`}>
+                {mistakes}/3
+              </span>
             </div>
-            <div className="sudoku-timer">Time: {formatTime(elapsedTime)}</div>
+            <div className="stat-item">
+              <span className="stat-label">Time:</span>
+              <span className="stat-value">{formatTime(elapsedTime)}</span>
+            </div>
           </div>
         </div>
 

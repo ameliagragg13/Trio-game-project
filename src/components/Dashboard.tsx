@@ -48,13 +48,13 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Refresh game stats when component mounts or when returning from a game
+  // Refresh game stats when component mounts, user changes, or when returning from a game
   useEffect(() => {
     const refreshStats = () => {
       setGameStats(getGameStats());
     };
     
-    // Refresh on mount
+    // Refresh on mount and when user changes
     refreshStats();
     
     // Refresh when window gains focus (returning from game)
@@ -72,7 +72,7 @@ export default function Dashboard() {
       window.removeEventListener('focus', refreshStats);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [user]); // Refresh when user changes
 
   // Refresh stats when location changes (navigating back from a game)
   useEffect(() => {
