@@ -1,6 +1,4 @@
-import { getCurrentUser } from './auth';
-
-const GAME_STATS_KEY_PREFIX = 'gameStats_';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 export interface GameStats {
   memory: number;
@@ -9,52 +7,79 @@ export interface GameStats {
 }
 
 /**
- * Gets the user-specific game stats key
+ * Gets the authentication token from localStorage
  */
-function getGameStatsKey(): string | null {
-  const user = getCurrentUser();
-  if (!user) return null;
-  return `${GAME_STATS_KEY_PREFIX}${user.username}`;
+function getToken(): string | null {
+  return localStorage.getItem('token');
 }
 
-export function getGameStats(): GameStats {
-  const statsKey = getGameStatsKey();
-  if (!statsKey) {
+/**
+ * Gets game stats from the API
+ */
+export async function getGameStats(): Promise<GameStats> {
+  const token = getToken();
+  if (!token) {
     // No user logged in, return default stats
     return { memory: 0, tictactoe: 0, sudoku: 0 };
   }
-  
-  const statsJson = localStorage.getItem(statsKey);
-  if (!statsJson) {
-    // User exists but no stats yet, return default
-    return { memory: 0, tictactoe: 0, sudoku: 0 };
-  }
+
   try {
-    return JSON.parse(statsJson);
+    const response = await fetch(`${API_BASE_URL}/games/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      return { memory: 0, tictactoe: 0, sudoku: 0 };
+    }
+
+    const stats = await response.json();
+    return stats;
   } catch {
     return { memory: 0, tictactoe: 0, sudoku: 0 };
   }
 }
 
-export function incrementGameWin(gameName: 'memory' | 'tictactoe' | 'sudoku'): void {
-  const statsKey = getGameStatsKey();
-  if (!statsKey) {
-    // No user logged in, can't save stats
+/**
+ * Increments the win count for a specific game
+ */
+export async function incrementGameWin(gameName: 'memory' | 'tictactoe' | 'sudoku'): Promise<void> {
+  const token = getToken();
+  if (!token) {
     console.warn('Cannot increment game win: no user logged in');
     return;
   }
-  
-  const stats = getGameStats();
-  stats[gameName] = (stats[gameName] || 0) + 1;
-  localStorage.setItem(statsKey, JSON.stringify(stats));
+
+  try {
+    await fetch(`${API_BASE_URL}/games/stats/increment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ gameName })
+    });
+  } catch (error) {
+    console.error('Failed to increment game win:', error);
+  }
 }
 
-export function resetGameStats(): void {
-  const statsKey = getGameStatsKey();
-  if (!statsKey) {
-    // No user logged in, nothing to reset
+/**
+ * Resets all game stats for the current user
+ */
+export async function resetGameStats(): Promise<void> {
+  const token = getToken();
+  if (!token) {
     return;
   }
-  localStorage.removeItem(statsKey);
-}
 
+  try {
+    await fetch(`${API_BASE_URL}/games/stats/reset`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } catch (error) {
+    console.error('Failed to reset game stats:', error);
+  }
+}

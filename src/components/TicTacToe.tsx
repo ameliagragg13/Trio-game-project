@@ -126,7 +126,7 @@ export default function TicTacToe() {
       // - In vs Friend mode: track when either player wins (completed games)
       if (gameMode === 'vsComputer') {
         if (newWinner === 'X') {
-          incrementGameWin('tictactoe');
+          incrementGameWin('tictactoe').catch(console.error);
           // Dispatch event to notify dashboard
           window.dispatchEvent(new CustomEvent(GAME_WIN_EVENT, { detail: { game: 'tictactoe' } }));
         }

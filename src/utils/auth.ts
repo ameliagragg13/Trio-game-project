@@ -1,83 +1,117 @@
 import type { User } from '../types/auth';
 
-const USERS_KEY = 'users';
-const CURRENT_USER_KEY = 'currentUser';
+const API_BASE_URL = 'http://localhost:3000/api';
+const TOKEN_KEY = 'token';
 
-/**
- * Retrieves all users from localStorage
- */
-function getUsers(): User[] {
-  const usersJson = localStorage.getItem(USERS_KEY);
-  if (!usersJson) return [];
-  try {
-    return JSON.parse(usersJson);
-  } catch {
-    return [];
-  }
+// Store token in localStorage
+function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
 }
 
-/**
- * Saves users array to localStorage
- */
-function saveUsers(users: User[]): void {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+function removeToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 /**
  * Signs up a new user
  * @returns true if successful, false if username already exists
  */
-export function signUp(username: string, password: string): boolean {
-  const users = getUsers();
-  
-  // Check if username already exists
-  if (users.some(user => user.username === username)) {
+export async function signUp(username: string, password: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    
+    // CRITICAL: Save token to localStorage BEFORE returning
+    if (data.token) {
+      setToken(data.token);
+    } else {
+      console.error('No token received from signup response');
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Signup error:', error);
     return false;
   }
-  
-  // Add new user
-  const newUser: User = { username, password };
-  users.push(newUser);
-  saveUsers(users);
-  
-  return true;
 }
 
 /**
  * Logs in a user
  * @returns User object if valid, null if invalid
  */
-export function login(username: string, password: string): User | null {
-  const users = getUsers();
-  const user = users.find(u => u.username === username && u.password === password);
-  
-  if (user) {
-    // Store current user
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    return user;
+export async function login(username: string, password: string): Promise<User | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    
+    // CRITICAL: Save token to localStorage BEFORE returning
+    if (data.token) {
+      setToken(data.token);
+    } else {
+      console.error('No token received from login response');
+      return null;
+    }
+    
+    return { username: data.user.username, password: '' }; // Don't store password
+  } catch (error) {
+    console.error('Login error:', error);
+    return null;
   }
-  
-  return null;
 }
 
 /**
  * Logs out the current user
  */
 export function logout(): void {
-  localStorage.removeItem(CURRENT_USER_KEY);
+  // CRITICAL: Clear token from localStorage
+  removeToken();
 }
 
 /**
  * Gets the current logged-in user
  * @returns User object or null if not logged in
  */
-export function getCurrentUser(): User | null {
-  const userJson = localStorage.getItem(CURRENT_USER_KEY);
-  if (!userJson) return null;
-  
+export async function getCurrentUser(): Promise<User | null> {
+  const token = getToken();
+  if (!token) return null;
+
   try {
-    return JSON.parse(userJson);
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      removeToken();
+      return null;
+    }
+
+    const data = await response.json();
+    return { username: data.user.username, password: '' };
   } catch {
+    removeToken();
     return null;
   }
 }
@@ -86,6 +120,5 @@ export function getCurrentUser(): User | null {
  * Checks if a user is currently authenticated
  */
 export function isAuthenticated(): boolean {
-  return getCurrentUser() !== null;
+  return getToken() !== null;
 }
-

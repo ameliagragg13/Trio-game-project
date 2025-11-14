@@ -40,7 +40,7 @@ export default function Dashboard() {
   const location = useLocation();
   const [selectedGame, setSelectedGame] = useState<GameInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [gameStats, setGameStats] = useState(getGameStats());
+  const [gameStats, setGameStats] = useState<{ memory: number; tictactoe: number; sudoku: number }>({ memory: 0, tictactoe: 0, sudoku: 0 });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -50,8 +50,9 @@ export default function Dashboard() {
 
   // Refresh game stats when component mounts, user changes, or when returning from a game
   useEffect(() => {
-    const refreshStats = () => {
-      setGameStats(getGameStats());
+    const refreshStats = async () => {
+      const stats = await getGameStats();
+      setGameStats(stats);
     };
     
     // Refresh on mount and when user changes
@@ -77,14 +78,19 @@ export default function Dashboard() {
   // Refresh stats when location changes (navigating back from a game)
   useEffect(() => {
     if (location.pathname === '/dashboard') {
-      setGameStats(getGameStats());
+      const refreshStats = async () => {
+        const stats = await getGameStats();
+        setGameStats(stats);
+      };
+      refreshStats();
     }
   }, [location.pathname]);
 
   // Listen for game win events
   useEffect(() => {
-    const handleGameWin = () => {
-      setGameStats(getGameStats());
+    const handleGameWin = async () => {
+      const stats = await getGameStats();
+      setGameStats(stats);
     };
     
     window.addEventListener('gameWinUpdated', handleGameWin);
@@ -104,16 +110,18 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = async () => {
     setIsModalOpen(false);
     setSelectedGame(null);
     // Refresh stats when modal closes
-    setGameStats(getGameStats());
+    const stats = await getGameStats();
+    setGameStats(stats);
   };
 
   // Function to manually refresh stats (can be called from anywhere)
-  const refreshStats = () => {
-    setGameStats(getGameStats());
+  const refreshStats = async () => {
+    const stats = await getGameStats();
+    setGameStats(stats);
   };
 
   // Expose refresh function to window for debugging/testing

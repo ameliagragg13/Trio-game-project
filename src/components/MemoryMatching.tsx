@@ -212,7 +212,7 @@ export default function MemoryMatching() {
     const allMatched = cards.length > 0 && cards.every(card => card.isMatched);
     if (allMatched && cards.length === expectedCards && !gameWon) {
       setGameWon(true);
-      incrementGameWin('memory');
+      incrementGameWin('memory').catch(console.error);
     }
   }, [cards, gameWon, difficulty]);
 

@@ -407,7 +407,7 @@ export default function Sudoku() {
     
     if (isCorrect && !hasInvalid) {
       setIsSolved(true);
-      incrementGameWin('sudoku');
+      incrementGameWin('sudoku').catch(console.error);
       window.dispatchEvent(new CustomEvent('gameWinUpdated', { detail: { game: 'sudoku' } }));
     }
   }, [board, solution, solutionRevealed, isSolved]);
